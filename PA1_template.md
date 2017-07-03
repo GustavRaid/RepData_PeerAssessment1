@@ -1,14 +1,10 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
 Load the Data:
-```{r echo=TRUE}
+
+```r
 unzip("activity.zip")
 activity <- read.csv("activity.csv", header = TRUE)
 ```
@@ -18,23 +14,45 @@ activity <- read.csv("activity.csv", header = TRUE)
 2. Changing the text date to an R date
 
 Determine where the NAs are....Note: NAs are only in $steps
-```{r echo=TRUE}
+
+```r
 sum(is.na(activity$steps))
+```
+
+```
+## [1] 2304
+```
+
+```r
 sum(is.na(activity$date))
+```
+
+```
+## [1] 0
+```
+
+```r
 sum(is.na(activity$interval))
 ```
+
+```
+## [1] 0
+```
 First: get rid of the NAs.
-```{r echo=TRUE}
+
+```r
 act <- activity[!is.na(activity$steps),]
 ```
 Second: change to date text to a date format.
-```{r echo=TRUE}
+
+```r
 act$date <- as.Date(act$date)
 ```
 
 ## What is mean total number of steps taken per day?
 
-```{r, echo=TRUE}
+
+```r
 ## total the step by day
 daysum <- aggregate(act$steps, list(Date = act$date), sum)
 ## find the mean steps per day
@@ -46,37 +64,43 @@ daysummeanDisplay <- as.character(round(daysummean,0))
 ```
 
 #### Mean and Median Steps per day (excluding NAs)
-The mean steps in a day is `r daysummeanDisplay`. The median steps in a day is `r daysummed`.
+The mean steps in a day is 10766. The median steps in a day is 10765.
 
 
 ###Create a histogram of the steps per day
-```{r, echo = TRUE}
+
+```r
 hist(daysum$x, xlab = "Number of Steps per Day (NAs removed)", main = "Histogram of Steps per day")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
 ## What is the average daily activity pattern?
-```{r echo=TRUE}
+
+```r
 ### Find the mean steps in each time interval
 intervalmean <- aggregate(act$steps, list(Interval = act$int), mean)
 ## Create a plot to display average daily activity pattern
 plot(1:length(intervalmean$Interval),intervalmean$x, type = "l", xlab = "5 min Interval",ylab = "Mean Number of Steps", col="green", lwd = "2", main="Average Daily Activity Pattern")
-
-
 ```
 
-```{r, echo=TRUE}
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
+
+
+```r
 ## Determine which interval has the highest activity
 highest <- intervalmean[intervalmean$x == max(intervalmean$x),]
 ```
 ### Interval with the most steps
 
-The interval `r highest[1,1]` has the most steps with `r highest[1,2]` steps on average.
+The interval 835 has the most steps with 206.1698113 steps on average.
 
 ## Imputing missing values
 Using all the data now add fromat the date as date and determine where the
 NAs are
 
-```{r echo=TRUE}
+
+```r
 ## create a new dataset with ins
 act2 <- data.frame( steps=activity$steps, date=as.Date(activity$date), interval=activity$interval)
 ## find the NAs
@@ -97,7 +121,8 @@ act2$int <- paste0(act2$inthrs,":",act2$intmin)
 act2$inttime <- strptime(act2$int,"%H:%M")
 ```
 This code inserts values into places with NAs
-```{r, echo=TRUE}
+
+```r
 ## if the value of steps is currently NA then
 ##get the average steps for the time interval from the prior calculation
 ## and put it into steps2, if not then just get the value of steps
@@ -109,28 +134,31 @@ for(i in 1:dim(act2)[1]){
     act2$steps2[i] <- act2$steps[i]
     }
   }
-
-
 ```
 Here are the calculation and the histagram code
-```{r, echo=TRUE}
+
+```r
 daysum2 <- aggregate(act2$steps2, list(Date = act2$date), sum)
 daysummean2 <- mean(daysum2$x)
 daysummed2 <- median(daysum2$x)
 daysummeanDisplay2 <- as.character(round(daysummean2,0))
 daysummedDisplay2  <- as.character(round(daysummed2,0))
 ```
-The mean steps in a day is `r daysummeanDisplay2`. The median steps in a day is `r daysummedDisplay2`.
-```{r, echo=TRUE}
+The mean steps in a day is 10766. The median steps in a day is 10766.
+
+```r
 hist(daysum2$x, xlab = "Number of Steps per Day (NAs replaced)",main = "Histogram of Steps per day")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 #### Impact of Replacing Missing Values
 There were 8 days with 288 missing values for steps (every interval. There were no other missing values. By replacing the missing values with the average steps taken from the remaining same intervals we did not significantly change either measure of central tendency, mean or median.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 This code identifies the weekends and sumarizes steps in each interval
-```{r, echo=TRUE}
+
+```r
 ## identifies the day of the week for each date
 daysofweek <- lapply(act$date,weekdays)
 ## Assigns a factor based on if its a weekend or not
@@ -140,9 +168,16 @@ intervalmean2 <- aggregate(act$steps, c(list(Interval = act$interval),list(weekd
 ```
 
 This code makes the plots to compare the activity on weekdays and weekends
-```{r, echo=TRUE}
-require("lattice")
 
+```r
+require("lattice")
+```
+
+```
+## Loading required package: lattice
+```
+
+```r
 xyplot( x ~ Interval | weekdays, 
         type = "l",
         data = intervalmean2, 
@@ -151,3 +186,5 @@ xyplot( x ~ Interval | weekdays,
         layout=c(1,2)        
         )
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
